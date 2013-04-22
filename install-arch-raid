@@ -1,0 +1,296 @@
+		# Virtual Machine with 5 or more hard drives 
+		# 
+		# start live usb
+		# pacman-key --init && pacman-key --populate archlinux 
+		# pacman -Syy
+		# pacman -S pacman
+		# pacman -S openssh
+		# systemctl enable sshd.service
+		# systemctl start sshd.service
+		# passwd
+
+
+
+		#todo ... ntp ... hw ...
+
+DRIVES=abcde
+DRIVESARR=(a b c d e)
+
+#copy this down in chroot
+HOSTNAME=thing
+BIOS=bios #efi or bios
+
+SWAPSIZE=2G
+ROOTSIZE=10G
+
+
+
+
+modprobe raid1
+modprobe raid5
+modprobe dm-mod
+
+
+	##dmsetup remove_all
+	##mdadm -S /dev/md0
+	##mdadm -S /dev/md1
+	##mdadm --zero-superblock /dev/sd[abcd]2
+	##mdadm --zero-superblock /dev/sd[abcd]3
+	##dd if=/dev/zero of=/dev/sdb bs=1M 
+	##dd if=/dev/zero of=/dev/sdc bs=1M 
+	##dd if=/dev/zero of=/dev/sdd bs=1M 
+	#for i in ${DRIVESARR[*]}
+	#do
+	#	dd if=/dev/zero of=/dev/sd${i} bs=1M 
+	#done
+
+
+
+
+
+	#####
+	# 1 - ef00 for efi systems, ef02 on bios systems with gpt
+	# 2 - /boot can't be in raid5 array
+	# 3 - everything else will be on the lvm on top of raid5
+	#####
+
+if [[ $BIOS = "efi" ]]; then
+	echo "o\ny\nn\n\n\n+100M\nef00\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
+else
+	echo "o\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
+fi
+
+	# copy partition table to other hard drives
+
+sgdisk --backup=table /dev/sda
+for i in ${DRIVESARR[*]}
+do
+	sgdisk --load-backup=table /dev/sd${i} 
+done
+
+
+mdadm --create /dev/md0 --level=1 --raid-devices=${#DRIVES} --metadata=1.0 /dev/sd[${DRIVES}]2
+mdadm --create /dev/md1 --level=5 --raid-devices=${#DRIVES} /dev/sd[${DRIVES}]3
+
+	# monitor 
+	# watch -n 1 cat /proc/mdstat
+
+
+	# for checking raid array run the following as super user:
+	# echo check >> /sys/block/mdX/md/sync_action
+	#
+	# monitor the process:
+	# watch -n 1 cat /proc/mdstat
+	#
+	# stop the check with:
+	# echo idle >> /sys/block/mdX/md/sync_action
+
+
+
+pvcreate /dev/md0
+pvcreate /dev/md1
+pvdisplay
+
+vgcreate VolBootArray /dev/md0
+vgcreate VolMainArray /dev/md1
+vgdisplay
+
+
+lvcreate -l +100%FREE VolBootArray -n lvboot
+
+lvcreate -C y -L ${SWAPSIZE} VolMainArray -n lvswap
+lvcreate -L      ${ROOTSIZE} VolMainArray -n lvroot
+lvcreate -l      +100%FREE   VolMainArray -n lvhome
+lvdisplay
+
+
+
+for i in ${DRIVESARR[*]}
+do
+	mkfs.vfat -F 32 /dev/sd${i}1
+done
+
+mkfs.ext2 -L boot /dev/mapper/VolBootArray-lvboot
+mkfs.ext4 -L root /dev/mapper/VolMainArray-lvroot
+mkfs.ext4 -L home /dev/mapper/VolMainArray-lvhome
+mkswap -L swap /dev/mapper/VolMainArray-lvswap
+swapon /dev/mapper/VolMainArray-lvswap
+
+
+
+mount /dev/mapper/VolMainArray-lvroot /mnt
+mkdir /mnt/home 
+mount /dev/mapper/VolMainArray-lvhome /mnt/home
+mkdir /mnt/boot
+mount  /dev/mapper/VolBootArray-lvboot /mnt/boot
+mkdir /mnt/boot/efi
+mount /dev/sda1 /mnt/boot/efi
+
+
+pacstrap /mnt base base-devel
+
+genfstab -U -p /mnt >> /mnt/etc/fstab
+
+arch-chroot /mnt
+
+
+
+
+#############################################
+#############################################
+#############################################
+#############################################
+#############################################
+
+
+
+
+#copy this down in chroot
+HOSTNAME=thing
+BIOS=bios #efi or bios
+NEWUSERNAME=zidar
+VBOX=vbox
+
+pacman -S --noconfirm ntp zsh
+
+zsh
+
+
+modprobe raid1
+modprobe raid5
+modprobe dm-mod
+
+sed -i 's/MODULES=""/MODULES="dm_mod raid1 raid5"/' /etc/mkinitcpio.conf
+sed -i 's/udev/udev mdadm_udev/' /etc/mkinitcpio.conf
+sed -i 's/filesystems/lvm2 filesystems/' /etc/mkinitcpio.conf
+
+
+mdadm --examine --scan > /etc/mdadm.conf
+
+
+sed -i 's/#sl_SI/sl_SI/' /etc/locale.gen
+sed -i 's/#en_US/en_US/' /etc/locale.gen
+sed -i 's/#en_GB/en_GB/' /etc/locale.gen
+locale-gen
+
+
+
+echo LANG=en_US.UTF-8 > /etc/locale.conf
+export LANG=en_US.UTF-8
+
+echo KEYMAP=us > /etc/vconsole.conf
+sed -i '$ a FONT=' /etc/vconsole.conf
+sed -i '$ a FONT_MAP=' /etc/vconsole.conf
+
+
+
+ln -s /usr/share/zoneinfo/Europe/Ljubljana /etc/localtime
+
+ntpd -qg
+hwclock --systohc --utc
+
+
+echo ${HOSTNAME} > /etc/hostname
+
+
+#pacman-key --init
+#pacman-key --populate archlinux 
+pacman -Syy
+
+pacman -S --noconfirm bash-completion vim sudo git openssh wget
+
+# this is horrible
+sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
+
+
+mkinitcpio -p linux
+
+
+if [[ $BIOS = "efi" ]]; then
+	# bios systems
+	pacman -S --noconfirm grub-bios
+	grub-install --recheck /dev/sda
+else
+	# uefi systems
+	# ioreg -l -p IODeviceTree | grep firmware-abi
+	pacman -S --noconfirm grub-efi-x86_64
+	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck --debug
+fi
+
+mkdir -p /boot/grub/locale
+cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+
+grub-mkconfig -o /boot/grub/grub.cfg
+
+
+
+
+useradd -m -g users -G wheel,storage,power -s /bin/bash $NEWUSERNAME
+echo "$NEWUSERNAME\n\n\n\n" | chfn $NEWUSERNAME
+
+
+passwd root
+passwd $NEWUSERNAME
+
+
+
+systemctl enable sshd.service
+#systemctl enable dhcpc.service
+systemctl enable lvm-monitoring.service
+
+
+
+
+#############################################
+#############################################
+#############################################
+#############################################
+#############################################
+
+
+
+pacman -S --noconfirm alsa-utils
+pacman -S --noconfirm xorg-server xorg-xinit xorg-server-utils
+pacman -S --noconfirm mesa
+
+if [[ $VBOX = "vbox" ]]; then
+	pacman -S virtualbox-guest-utils
+	modprobe -a vboxguest vboxsf vboxvideo
+	echo $'vboxguest\nvboxsf\nvboxvideo' > /etc/modules-load.d/virtualbox.conf
+else
+	# assuming nvidia graphics, because all else is evil
+	pacman -S --noconfirm xf86-video-nouveau 
+fi
+
+su $NEWUSERNAME
+
+
+cd /tmp
+wget https://aur.archlinux.org/packages/au/aurget/aurget.tar.gz
+tar -xpvf aurget.tar.gz
+cd aurget
+makepkg -i
+
+sudo pacman -S --noconfirm  ttf-dejavu gnome gnome-extra 
+sudo pacman -S --noconfirm  network-manager-applet
+
+sudo systemctl enable gdm.service
+
+
+
+
+#############################################
+#############################################
+#############################################
+#############################################
+#############################################
+
+
+
+
+# set dual screen .. then run : 
+xrandr --output VGA-1 --primary
+
+
+
+

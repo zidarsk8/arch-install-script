@@ -1,0 +1,134 @@
+makepkg 
+sudo chown zidar ../aurget
+cd ...
+cd ..
+chmod own zidar -R aurget
+chmod zidar -R aurget
+chown zidar -R aurget
+sudo chown zidar -R aurget
+cd aurget/
+makepkg -i
+sudo pacman -S --noconfirm  ttf-dejavu gnome gnome-extra
+sudo pacman -S --noconfirm  ttf-dejavu gnome gnome-extra
+sudo systemctl enable gdm.service
+sudo reboot
+xrandr 
+xrandr --output VGA-1 --primary
+wifi-menu 
+sudo wifi-menu 
+ip addr
+sudo wifi-menu wlp0s22f2u4
+ping google.com
+sudo pacman -Syy
+sudo pacman -Syu
+ip addr
+sudo pacman -S gedit firefox terminator nginx vlc eclipse ttf-bitstream-vera ttf-cheapskate ttf-freefont ttf-linux-libertine ttf-mph-2b-damase ttf-droid ttf-inconsolata ttf-liberation ttf-symbola ttf-ubuntu-font-family virtualbox virtualbox-host-dkms virtualbox-host-modules 
+modprobe vboxdrv
+sudo modprobe vboxdrv
+sudo vim /etc/ssh/sshd_config 
+pacman -Ss ttf-
+watch -n 1 cat /proc/mdstat 
+xrandr --output VGA-1 --primary
+sudo pacman -S rsync git 
+sudo cp /run/media/zidar/8b56c292-1d60-4a4f-a624-6c103fdde758/VirtualBox /home/
+sudo cp -r /run/media/zidar/8b56c292-1d60-4a4f-a624-6c103fdde758/VirtualBox /home/
+sudo chown zidar:users -R /home/VirtualBox
+sudo modprobe vboxdrv
+sudo usermod -a -G vboxusers zidar
+du -sh /home/VirtualBox/
+sudo du -sh /home/VirtualBox/
+sudo du -sh /home/VirtualBox/
+sudo du -sh /home/VirtualBox/
+sudo du -sh /run/media/zidar/8b56c292-1d60-4a4f-a624-6c103fdde758/VirtualBox
+ll
+xrandr --output VGA-1 --primary
+sudo systemctl enable dkms.service 
+sudo cp .vim* .bashrc /root/
+sudo cp -r .vim* .bashrc /root/
+sudo modprobe vboxdrv
+sudo ./iptables.conf 
+cat /etc/ssh/sshd_config 
+ssh -p1248 localhost
+cd /etc/
+sudo mv nginx{,.old}
+sudo mv /home/zidar/nginx .
+sudo systemctl enable nginx.service 
+sudo systemctl start nginx.service 
+curl localhost
+cd 
+vim iptables.conf 
+vim /etc/nginx/sites-enabled/smotko.proxy.conf 
+sudo systemctl restart nginx.service 
+cd /etc/
+ll
+ls netconfig 
+cat netconfig
+cd systemd/system/
+sudo vim /etc/systemd/system/network.service
+sudo vim /etc/conf.d/netcfg 
+cd
+cd /etc/
+ll /etc/network.d/examples/
+cd /etc/network.d/examples/
+sudo cp ethernet-static ../
+cd ..
+ls
+sudo vim ethernet-static 
+sudo mv ethernet-static static
+ll
+cd
+sudo systemctl enable netcfg@static
+sudo systemctl start netcfg@static
+systemctl status netcfg@static.service
+journalctl -xn
+systemctl start netcfg@static
+sudo systemctl start netcfg@static
+sudo reboot
+xrandr --output VGA-1 --primary
+ip addr
+sudo vim /etc/network.d/static 
+sudo systemctl start netcfg@static
+dhcpcd 
+sudo dhcpcd 
+ip addr
+ip addr
+sudo vim /etc/network.d/static 
+sudo vim /etc/conf.d/netcfg 
+netcfg
+man netcfg
+sudo netcfg static
+ip addr
+sudo reboot
+xrandr --output VGA-1 --primary
+sudo netcfg static
+vim /etc/network.d/static 
+sudo vim /etc/network.d/static 
+sudo netcfg static
+sudo vim /etc/network.d/static 
+sudo netcfg static
+sudo vim /etc/network.d/static 
+sudo netcfg static
+sudo vim /etc/network.d/static 
+sudo netcfg static
+sudo systemctl enable netcfg@static
+sudo systemctl start netcfg@static
+systemctl status netcfg@static.service
+sudo systemctl status netcfg@static.service
+man netcfg
+sudo netcfg stop static
+sudo systemctl start netcfg@static
+sudo systemctl status netcfg@static.service
+sudo reboot
+sudo mkdir /var/log/nohub
+sudo chown zidar /var/log/nohub
+ll /var/log/nohub
+ll /var/log/
+xrandr --output VGA-1 --primary
+sudo systemctl status netcfg@static.service
+ip addr
+ping google.com
+sudo modprobe vboxdrv
+sudo vi
+sudo vim /etc/network.d/static 
+sudo systemctl restart netcfg@static.service
+vim startVbox 

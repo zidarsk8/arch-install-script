@@ -1,0 +1,7 @@
+CONNECTION='wireless'
+DESCRIPTION='Automatically generated profile by wifi-menu'
+INTERFACE='wlp0s22f2u4'
+SECURITY='wpa'
+ESSID=haxor
+IP='dhcp'
+KEY=Zidar124816
