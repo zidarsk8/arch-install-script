@@ -88,7 +88,17 @@ echo "nnn\nnnn" | passwd $NEWUSERNAME
 
 
 systemctl enable sshd.service
+#systemctl enable dhcpc.service
 systemctl enable lvm-monitoring.service
+
+
+
+
+#############################################
+#############################################
+#############################################
+#############################################
+#############################################
 
 
 

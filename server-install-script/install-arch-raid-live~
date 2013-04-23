@@ -107,10 +107,12 @@ lvdisplay
 
 
 
-for i in ${DRIVESARR[*]}
-do
-	mkfs.vfat -F 32 /dev/sd${i}1
-done
+if [[ $BIOS = "efi" ]]; then
+	for i in ${DRIVESARR[*]}
+	do
+		mkfs.vfat -F 32 /dev/sd${i}1
+	done
+fi
 
 mkfs.ext2 -L boot /dev/mapper/VolBootArray-lvboot
 mkfs.ext4 -L root /dev/mapper/VolMainArray-lvroot
@@ -125,9 +127,11 @@ mkdir /mnt/home
 mount /dev/mapper/VolMainArray-lvhome /mnt/home
 mkdir /mnt/boot
 mount  /dev/mapper/VolBootArray-lvboot /mnt/boot
-mkdir /mnt/boot/efi
-mount /dev/sda1 /mnt/boot/efi
 
+if [[ $BIOS = "efi" ]]; then
+	mkdir /mnt/boot/efi
+	mount /dev/sda1 /mnt/boot/efi
+fi
 
 pacstrap /mnt base base-devel zsh
 
