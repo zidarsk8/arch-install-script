@@ -1,8 +1,0 @@
-#!/bin/bash
-#generate a fev vbox hard drives
-#for i in 0 1 2 3 4
-#do
-#	VBoxManage createhd --filename arch-raid-${i} --size 20480
-#	VBoxManage storageattach "arch-raid" --storagectl "SATA" --port ${i} --#device 0 --type hdd --medium arch-raid-${i}.vdi
-#done
-

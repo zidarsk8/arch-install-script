@@ -1,0 +1,56 @@
+#!/bin/zsh
+
+source install-arch-raid-config
+
+hostname $HOSTNAME
+
+dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
+
+
+if [[ $BIOS = "efi" ]]; then
+	echo "2\no\ny\nn\n\n\n+100M\nef00\nn\n\n\n+100M\n\nn\n\n\n+16G\n8200\nn\n\n\n+100G\n\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
+else
+	echo "2\no\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\n\nn\n\n\n+16G\n8200\nn\n\n\n+100G\n\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
+fi
+
+
+if [[ $BIOS = "efi" ]]; then
+	mkfs.vfat -F 32 /dev/${DRIVE}1
+fi
+
+mkfs.ext2 -L boot /dev/${DRIVE}2
+mkswap    -L swap /dev/${DRIVE}3
+mkfs.ext4 -L root /dev/${DRIVE}4
+mkfs.ext4 -L home /dev/${DRIVE}5
+
+swapon /dev/${DRIVE}3
+
+
+
+
+mount /dev/${DRIVE}4 /mnt
+mkdir /mnt/home 
+mount /dev/${DRIVE}5 /mnt/home
+mkdir /mnt/boot
+mount  /dev/${DRIVE}2 /mnt/boot
+
+if [[ $BIOS = "efi" ]]; then
+	mkdir /mnt/boot/efi
+	mount /dev//dev/${DRIVE}1 /mnt/boot/efi
+fi
+
+pacstrap /mnt base base-devel zsh
+
+genfstab -U -p /mnt >> /mnt/etc/fstab
+
+cp arch-chroot /mnt/
+chmod 755 /mnt/install-arch-raid-chroot
+cp arch-config /mnt/
+chmod 755 /mnt/install-arch-raid-config
+
+arch-chroot /mnt /arch-chroot
+
+
+
+
+

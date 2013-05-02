@@ -1,26 +1,8 @@
 #!/bin/zsh
 
-pacman -S --noconfirm ntp zsh
+pacman -S --noconfirm ntp 
 
-zsh
-
-#copy this down in chroot
-HOSTNAME=thing
-BIOS=bios #efi or bios
-NEWUSERNAME=zidar
-VBOX=vbox
-
-
-modprobe raid1
-modprobe raid5
-modprobe dm-mod
-
-sed -i 's/MODULES=""/MODULES="dm_mod raid1 raid5"/' /etc/mkinitcpio.conf
-sed -i 's/udev/udev mdadm_udev/' /etc/mkinitcpio.conf
-sed -i 's/filesystems/lvm2 filesystems/' /etc/mkinitcpio.conf
-
-
-mdadm --examine --scan > /etc/mdadm.conf
+source install-arch-raid-config
 
 
 sed -i 's/#sl_SI/sl_SI/' /etc/locale.gen
@@ -48,26 +30,20 @@ hwclock --systohc --utc
 echo ${HOSTNAME} > /etc/hostname
 
 
-#pacman-key --init
-#pacman-key --populate archlinux 
 pacman -Syy
 
 pacman -S --noconfirm bash-completion vim sudo git openssh wget
 
-# this is horrible
 sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 
 mkinitcpio -p linux
 
 
-if [[ $BIOS = "efi" ]]; then
-	# bios systems
+if [[ $BIOS = "bios" ]]; then
 	pacman -S --noconfirm grub-bios
 	grub-install --recheck /dev/sda
 else
-	# uefi systems
-	# ioreg -l -p IODeviceTree | grep firmware-abi
 	pacman -S --noconfirm grub-efi-x86_64
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck --debug
 fi
@@ -84,23 +60,14 @@ useradd -m -g users -G wheel,storage,power -s /bin/bash $NEWUSERNAME
 echo "$NEWUSERNAME\n\n\n\n" | chfn $NEWUSERNAME
 
 
-echo "nnn\nnnn" | passwd root
-echo "nnn\nnnn" | passwd $NEWUSERNAME
+echo "aaa\naaa" | passwd root
+echo "aaa\naaa" | passwd $NEWUSERNAME
 
 
 
 systemctl enable sshd.service
-#systemctl enable dhcpc.service
-systemctl enable lvm-monitoring.service
 
 
-
-
-#############################################
-#############################################
-#############################################
-#############################################
-#############################################
 
 
 
@@ -109,27 +76,32 @@ pacman -S --noconfirm xorg-server xorg-xinit xorg-server-utils
 pacman -S --noconfirm mesa
 
 if [[ $VBOX = "vbox" ]]; then
-	pacman -S virtualbox-guest-utils
+	pacman -S --noconfirm virtualbox-guest-utils
 	modprobe -a vboxguest vboxsf vboxvideo
 	echo 'vboxguest\nvboxsf\nvboxvideo' > /etc/modules-load.d/virtualbox.conf
 else
-	# assuming nvidia graphics, because all else is evil
 	pacman -S --noconfirm xf86-video-nouveau 
 fi
 
-su $NEWUSERNAME
 
 
 cd /tmp
 wget https://aur.archlinux.org/packages/au/aurget/aurget.tar.gz
 tar -xpvf aurget.tar.gz
 cd aurget
-makepkg -i
+makepkg -i --asroot --noconfirm
 
-sudo pacman -S --noconfirm  ttf-dejavu gnome gnome-extra 
-sudo pacman -S --noconfirm  network-manager-applet
+pacman -S --noconfirm gnome gnome-extra 
+pacman -S --noconfirm $(pacman -Ssq ttf)
 
-sudo systemctl enable gdm.service
+pacman -S --noconfirm  network-manager-applet
+
+systemctl enable gdm.service
+
+pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp
+
+echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
+
 
 
 
