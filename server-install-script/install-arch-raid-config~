@@ -1,7 +1,7 @@
 #!/bin/zsh
 
-DRIVES=abc
-DRIVESARR=(a b c)
+DRIVES=ab
+DRIVESARR=(a b)
 
 #copy this down in chroot
 HOSTNAME=dog

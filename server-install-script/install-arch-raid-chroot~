@@ -77,6 +77,8 @@ echo "aaa\naaa" | passwd $NEWUSERNAME
 
 
 systemctl enable sshd.service
+
+
 systemctl enable lvm-monitoring.service
 
 

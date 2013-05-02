@@ -18,7 +18,7 @@ mdadm --zero-superblock /dev/sd[abc]3
 
 for i in ${DRIVESARR[*]}
 do
-	dd if=/dev/zero of=/dev/sd${i} bs=1M count=1k &
+	dd if=/dev/zero of=/dev/sd${i} bs=1M count=1k
 done
 
 
@@ -47,7 +47,7 @@ done
 
 
 mdadm --create /dev/md0 --level=1 --raid-devices=${#DRIVES} --metadata=1.0 /dev/sd[${DRIVES}]2
-mdadm --create /dev/md1 --level=1 --raid-devices=${#DRIVES} /dev/sd[${DRIVES}]3
+mdadm --create /dev/md1 --level=5 --raid-devices=${#DRIVES} /dev/sd[${DRIVES}]3
 
 	# monitor 
 	# watch -n 1 cat /proc/mdstat
