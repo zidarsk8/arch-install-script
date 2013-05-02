@@ -1,50 +1,25 @@
 #!/bin/zsh
 
+source install-arch-raid-config
 
-		# Virtual Machine with 5 or more hard drives 
-		# 
-		# start live usb
-		# pacman-key --init && pacman-key --populate archlinux 
-		# pacman -Syy
-		# pacman -S pacman
-		# pacman -S openssh
-		# systemctl enable sshd.service
-		# systemctl start sshd.service
-		# passwd
-
-
-		#todo ... ntp ... hw ...
-
-DRIVES=abcde
-DRIVESARR=(a b c d e)
-
-#copy this down in chroot
-HOSTNAME=thing
-BIOS=bios #efi or bios
-
-SWAPSIZE=2G
-ROOTSIZE=10G
-
-
-
+hostname $HOSTNAME
 
 modprobe raid1
 modprobe raid5
 modprobe dm-mod
 
 
-	##dmsetup remove_all
-	##mdadm -S /dev/md0
-	##mdadm -S /dev/md1
-	##mdadm --zero-superblock /dev/sd[abcd]2
-	##mdadm --zero-superblock /dev/sd[abcd]3
-	##dd if=/dev/zero of=/dev/sdb bs=1M 
-	##dd if=/dev/zero of=/dev/sdc bs=1M 
-	##dd if=/dev/zero of=/dev/sdd bs=1M 
-	#for i in ${DRIVESARR[*]}
-	#do
-	#	dd if=/dev/zero of=/dev/sd${i} bs=1M 
-	#done
+dmsetup remove_all
+mdadm -S /dev/md0
+mdadm -S /dev/md1
+
+mdadm --zero-superblock /dev/sd[abc]2
+mdadm --zero-superblock /dev/sd[abc]3
+
+for i in ${DRIVESARR[*]}
+do
+	dd if=/dev/zero of=/dev/sd${i} bs=1M count=1k
+done
 
 
 
@@ -105,6 +80,7 @@ lvcreate -L      ${ROOTSIZE} VolMainArray -n lvroot
 lvcreate -l      +100%FREE   VolMainArray -n lvhome
 lvdisplay
 
+vgchange -ay
 
 
 if [[ $BIOS = "efi" ]]; then
@@ -139,6 +115,8 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 
 cp install-arch-raid-chroot /mnt/
 chmod 755 /mnt/install-arch-raid-chroot
+cp install-arch-raid-config /mnt/
+chmod 755 /mnt/install-arch-raid-config
 
 
 arch-chroot /mnt /install-arch-raid-chroot

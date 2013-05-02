@@ -1,11 +1,15 @@
+#!/bin/zsh
 
-DRIVES=abcde
-DRIVESARR=(a b c d e)
+DRIVES=abc
+DRIVESARR=(a b c)
 
 #copy this down in chroot
-HOSTNAME=thing
-BIOS=bios #efi or bios
+HOSTNAME=dog
+BIOS=efi #efi or bios
 
-SWAPSIZE=2G
-ROOTSIZE=10G
+SWAPSIZE=8G
+ROOTSIZE=100G
+
+NEWUSERNAME=zidar
+VBOX=no
 
