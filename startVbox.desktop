@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=vbox
+GenericName=run vbox servers 
+Comment=start vbox servers listed in ~/.startVbox
+Exec=~/.startVbox
+Terminal=false
+Type=Application
+X-GNOME-Autostart-enabled=true

@@ -64,7 +64,8 @@ useradd -m -g users -G wheel,storage,power -s /bin/bash $NEWUSERNAME
 echo "$NEWUSERNAME\n\n\n\n" | chfn $NEWUSERNAME
 
 
-echo "aaa\naaa" | passwd $NEWUSERNAME
+echo "${USERPASS}\n${USERPASS}" | passwd $NEWUSERNAME
+echo "${ROOTPASS}\n${ROOTPASS}" | passwd root
 
 
 
@@ -96,19 +97,69 @@ makepkg -i --asroot --noconfirm
 
 pacman -S --noconfirm gnome gnome-extra 
 pacman -S --noconfirm $(pacman -Ssq ttf)
-
 pacman -S --noconfirm  networkmanager network-manager-applet
 
 systemctl enable gdm.service
-
-pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp meld gitg smartmontools
-
-echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
-
-
-groupadd nopasswdlogin
-usermod -a -G nopasswdlogin $NEWUSERNAME
+systemctl enable NetworkManager.service 
 
 sed -i "s/\[daemon\]/\# Enable automatic login for user\n\[daemon\]\nAutomaticLogin=${NEWUSERNAME}\nAutomaticLoginEnable=True/g" /etc/gdm/custom.conf
+
+
+pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp meld gitg smartmontools firefox rsync qt4 sbt scala python2 ipython2 vlc pidgin
+
+pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles
+
+
+
+
+
+echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
+mkdir /home/VirtualBox
+chown ${NEWUSERNAME}:users /home/VirtualBox
+setproperty machinefolder /home/VirtualBox/
+groupadd nopasswdlogin
+usermod -a -G nopasswdlogin $NEWUSERNAME
+usermod -a -G vboxusers $NEWUSERNAME
+
+
+
+
+
+
+mkdir /var/log/nohub
+chown ${NEWUSERNAME}:users /var/log/nohub
+cp -r /tmp/arch/startVbox /home/${NEWUSERNAME}/.StartVBox
+chmod 755 /home/${NEWUSERNAME}/.StartVBox
+cp -r /tmp/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
+
+
+
+
+
+
+mv /etc/nginx/nginx.conf{,.old}
+cp -r /tmp/arch/etc/nginx/* /etc/nginx/
+systemctl enable nginx.service 
+
+
+
+
+
+
+
+mv /etc/ssh/sshd_config{,.old}
+cp -r /tmp/arch/sshd_config /etc/ssh/sshd_config
+systemctl enable sshd.service 
+
+
+
+
+
+source /tmp/arch/iptables.conf
+iptables-save > /etc/iptables/iptables.rules
+
+
+
+
 
 

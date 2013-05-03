@@ -1,0 +1,4 @@
+nohup VBoxHeadless -s debian-smotko -v on &> /var/log/nohub/debian-smotko.log &
+nohup VBoxHeadless -s debian-thing -v on &> /var/log/nohub/ubuntu-thing.log &
+nohup VBoxHeadless -s minecraft -v on &> /var/log/nohub/minecraft.log &
+

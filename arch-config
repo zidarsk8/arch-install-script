@@ -1,13 +1,23 @@
 #!/bin/zsh
 
+VBOX=no
+
 DRIVE=sda
 
 HOSTNAME=dog
+
 BIOS=efi
 
 SWAPSIZE=8G
 ROOTSIZE=100G
 
 NEWUSERNAME=zidar
-VBOX=no
+USERPASS=loll
+
+ROOTPASS=loll
+
+
+INTERFACE=wlp0s22f2u2 
+
+
 

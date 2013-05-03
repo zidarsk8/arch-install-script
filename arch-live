@@ -42,6 +42,7 @@ pacstrap /mnt base base-devel zsh
 
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
+cp /root/arch /mnt/tmp/
 cp arch-chroot /mnt/
 chmod 755 /mnt/arch-chroot
 cp arch-config /mnt/
