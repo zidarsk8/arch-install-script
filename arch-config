@@ -1,10 +1,9 @@
 #!/bin/zsh
 
-$DRIVE=sda
+DRIVE=sda
 
-#copy this down in chroot
 HOSTNAME=dog
-BIOS=efi #efi or bios
+BIOS=efi
 
 SWAPSIZE=8G
 ROOTSIZE=100G

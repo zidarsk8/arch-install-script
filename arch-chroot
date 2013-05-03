@@ -2,7 +2,11 @@
 
 pacman -S --noconfirm ntp 
 
-source install-arch-raid-config
+source arch-config
+
+hostname $HOSTNAME
+
+echo ${HOSTNAME} > /etc/hostname
 
 
 sed -i 's/#sl_SI/sl_SI/' /etc/locale.gen
@@ -27,8 +31,6 @@ ntpd -qg
 hwclock --systohc --utc
 
 
-echo ${HOSTNAME} > /etc/hostname
-
 
 pacman -Syy
 
@@ -37,8 +39,9 @@ pacman -S --noconfirm bash-completion vim sudo git openssh wget
 sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 
+sleep 2
 mkinitcpio -p linux
-
+sleep 2
 
 if [[ $BIOS = "bios" ]]; then
 	pacman -S --noconfirm grub-bios
@@ -48,19 +51,19 @@ else
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck --debug
 fi
 
+sleep 2
 mkdir -p /boot/grub/locale
+sleep 2
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-
+sleep 2
 grub-mkconfig -o /boot/grub/grub.cfg
-
-
-
+sleep 2
+echo "############done something"
 
 useradd -m -g users -G wheel,storage,power -s /bin/bash $NEWUSERNAME
 echo "$NEWUSERNAME\n\n\n\n" | chfn $NEWUSERNAME
 
 
-echo "aaa\naaa" | passwd root
 echo "aaa\naaa" | passwd $NEWUSERNAME
 
 
@@ -94,14 +97,18 @@ makepkg -i --asroot --noconfirm
 pacman -S --noconfirm gnome gnome-extra 
 pacman -S --noconfirm $(pacman -Ssq ttf)
 
-pacman -S --noconfirm  network-manager-applet
+pacman -S --noconfirm  networkmanager network-manager-applet
 
 systemctl enable gdm.service
 
-pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp
+pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp meld gitg smartmontools
 
 echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
 
 
+groupadd nopasswdlogin
+usermod -a -G nopasswdlogin $NEWUSERNAME
+
+sed -i "s/\[daemon\]/\# Enable automatic login for user\n\[daemon\]\nAutomaticLogin=${NEWUSERNAME}\nAutomaticLoginEnable=True/g" /etc/gdm/custom.conf
 
 
