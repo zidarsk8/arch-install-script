@@ -5,7 +5,7 @@ echo "looking for config"
 [[ -a arch-config ]] || cd /root/arch
 [[ -a arch-config ]] || { echo "no config found" ; exit }
 
-echo "starting arch"
+echo "starting arch install script"
 
 set -k
 source arch-config

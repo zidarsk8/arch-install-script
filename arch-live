@@ -1,8 +1,10 @@
 #!/bin/zsh
 
-#cd arch
+echo "looking for config"
+[[ -a arch-config ]] || cd /root/arch
+[[ -a arch-config ]] || { echo "no config found" ; exit }
 
-[[ -a arch-config ]] || exit
+echo "starting arch install script"
 
 source arch-config
 
