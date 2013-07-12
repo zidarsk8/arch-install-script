@@ -1,18 +1,26 @@
 #!/bin/zsh
 
+modprobe efivars
+set -k
+source arch-config
 pacman -S --noconfirm ntp 
 
-source arch-config
+
 
 hostname $HOSTNAME
-
 echo ${HOSTNAME} > /etc/hostname
+
+
+
 
 
 sed -i 's/#sl_SI/sl_SI/' /etc/locale.gen
 sed -i 's/#en_US/en_US/' /etc/locale.gen
 sed -i 's/#en_GB/en_GB/' /etc/locale.gen
 locale-gen
+
+
+
 
 
 
@@ -25,23 +33,28 @@ sed -i '$ a FONT_MAP=' /etc/vconsole.conf
 
 
 
-ln -s /usr/share/zoneinfo/Europe/Ljubljana /etc/localtime
 
+
+
+ln -s /usr/share/zoneinfo/Europe/Ljubljana /etc/localtime
 ntpd -qg
 hwclock --systohc --utc
 
 
 
+
+
+
+
 pacman -Syy
-
-pacman -S --noconfirm bash-completion vim sudo git openssh wget
-
+pacman -S --noconfirm bash-completion vim sudo efibootmgr git openssh dosfstools wget htop
 sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 
-sleep 2
+
+
+
 mkinitcpio -p linux
-sleep 2
 
 if [[ $BIOS = "bios" ]]; then
 	pacman -S --noconfirm grub-bios
@@ -51,25 +64,29 @@ else
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck --debug
 fi
 
-sleep 2
 mkdir -p /boot/grub/locale
-sleep 2
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-sleep 2
+
 grub-mkconfig -o /boot/grub/grub.cfg
-sleep 2
-echo "############done something"
+
+
+
+
+
+
+
+
+
 
 useradd -m -g users -G wheel,storage,power -s /bin/bash $NEWUSERNAME
 echo "$NEWUSERNAME\n\n\n\n" | chfn $NEWUSERNAME
 
-
 echo "${USERPASS}\n${USERPASS}" | passwd $NEWUSERNAME
 echo "${ROOTPASS}\n${ROOTPASS}" | passwd root
 
-
-
 systemctl enable sshd.service
+
+
 
 
 
@@ -85,7 +102,12 @@ if [[ $VBOX = "vbox" ]]; then
 	echo 'vboxguest\nvboxsf\nvboxvideo' > /etc/modules-load.d/virtualbox.conf
 else
 	pacman -S --noconfirm xf86-video-nouveau 
+	# pacman -S --noconfirm nvidia 
 fi
+
+
+
+
 
 
 
@@ -95,19 +117,35 @@ tar -xpvf aurget.tar.gz
 cd aurget
 makepkg -i --asroot --noconfirm
 
+
+
+
+
+
 pacman -S --noconfirm gnome gnome-extra 
 pacman -S --noconfirm $(pacman -Ssq ttf)
-pacman -S --noconfirm  networkmanager network-manager-applet
 
 systemctl enable gdm.service
+
+pacman -S --noconfirm  networkmanager network-manager-applet
 systemctl enable NetworkManager.service 
+
 
 sed -i "s/\[daemon\]/\# Enable automatic login for user\n\[daemon\]\nAutomaticLogin=${NEWUSERNAME}\nAutomaticLoginEnable=True/g" /etc/gdm/custom.conf
 
 
-pacman -S --noconfirm  virtualbox terminator nginx openssh blender gimp meld gitg smartmontools firefox rsync qt4 sbt scala python2 ipython2 vlc pidgin
+
+
+
+
+
+
+pacman -S --noconfirm  virtualbox terminator nginx blender gimp meld gitg smartmontools firefox rsync qt4 sbt scala python2 ipython2 vlc pidgin
 
 pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles
+
+
+
 
 
 
@@ -116,21 +154,24 @@ pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnom
 echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
 mkdir /home/VirtualBox
 chown ${NEWUSERNAME}:users /home/VirtualBox
-setproperty machinefolder /home/VirtualBox/
 groupadd nopasswdlogin
 usermod -a -G nopasswdlogin $NEWUSERNAME
 usermod -a -G vboxusers $NEWUSERNAME
 
 
+su $NEWUSERNAME
+vboxmanage setproperty machinefolder /home/VirtualBox/
 
+echo $NEWUSERNAME
 
 
 
 mkdir /var/log/nohub
 chown ${NEWUSERNAME}:users /var/log/nohub
-cp -r /tmp/arch/startVbox /home/${NEWUSERNAME}/.StartVBox
+cp -r /root/arch/startVbox /home/${NEWUSERNAME}/.StartVBox
 chmod 755 /home/${NEWUSERNAME}/.StartVBox
-cp -r /tmp/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
+mkdir /home/${NEWUSERNAME}/.config/
+cp -r /root/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
 
 
 
@@ -138,7 +179,7 @@ cp -r /tmp/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
 
 
 mv /etc/nginx/nginx.conf{,.old}
-cp -r /tmp/arch/etc/nginx/* /etc/nginx/
+cp -r /root/arch/etc/nginx /etc/
 systemctl enable nginx.service 
 
 
@@ -148,17 +189,16 @@ systemctl enable nginx.service
 
 
 mv /etc/ssh/sshd_config{,.old}
-cp -r /tmp/arch/sshd_config /etc/ssh/sshd_config
+cp /root/arch/sshd_config /etc/ssh/sshd_config
 systemctl enable sshd.service 
 
 
 
+#do this manually for othel interfaces
+#source /root/arch/iptables.conf
+#iptables-save > /etc/iptables/iptables.rules
 
-
-source /tmp/arch/iptables.conf
-iptables-save > /etc/iptables/iptables.rules
-
-
+cp /root/arch/iptables.rules /etc/iptables/iptables.rules
 
 
 

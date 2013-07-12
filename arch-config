@@ -17,7 +17,8 @@ USERPASS=loll
 ROOTPASS=loll
 
 
-INTERFACE=wlp0s22f2u2 
+#INTERFACE=wlp0s22f2u2 
+INTERFACE=enp2s0 
 
 
 
