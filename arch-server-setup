@@ -1,0 +1,67 @@
+#!/bin/zsh
+
+
+echo "looking for config"
+[[ -a arch-config ]] || cd /root/arch
+[[ -a arch-config ]] || { echo "no config found" ; exit }
+
+echo "starting arch"
+
+set -k
+source arch-config
+
+pacman -S --noconfirm  virtualbox nginx qt4
+
+
+
+
+echo 'vboxdrv' >> /etc/modules-load.d/virtualbox.conf
+mkdir /home/VirtualBox
+chown ${NEWUSERNAME}:users /home/VirtualBox
+groupadd nopasswdlogin
+usermod -a -G nopasswdlogin $NEWUSERNAME
+usermod -a -G vboxusers $NEWUSERNAME
+
+
+su $NEWUSERNAME vboxmanage setproperty machinefolder /home/VirtualBox/
+
+
+
+mkdir /var/log/nohub
+chown ${NEWUSERNAME}:users /var/log/nohub
+cp -r /root/arch/startVbox /home/${NEWUSERNAME}/.StartVBox
+chmod 755 /home/${NEWUSERNAME}/.StartVBox
+mkdir /home/${NEWUSERNAME}/.config/
+cp -r /root/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
+
+
+
+
+
+
+mv /etc/nginx{,.old}
+cp -r /root/arch/etc/nginx /etc/
+systemctl enable nginx.service 
+
+
+
+
+
+
+
+mv /etc/ssh/sshd_config{,.old}
+cp /root/arch/sshd_config /etc/ssh/sshd_config
+systemctl enable sshd.service 
+
+
+
+# check the INTERFACE var is set before running iptables.conf
+source /root/arch/iptables.conf
+iptables-save > /etc/iptables/iptables.rules
+systemctl enable iptables.service
+systemctl start iptables.service
+
+#cp /root/arch/iptables.rules /etc/iptables/iptables.rules
+
+
+

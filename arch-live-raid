@@ -1,15 +1,8 @@
 #!/bin/zsh
 
-DRIVES=abcde
-DRIVESARR=(a b c d e)
+source arch-config
 
-#copy this down in chroot
-HOSTNAME=pik
-BIOS=bios #efi or bios
-
-SWAPSIZE=10G
-ROOTSIZE=100G
-
+[ $BIOS == "efi" ] && modprobe efivars
 
 modprobe raid1
 modprobe raid5
@@ -104,19 +97,21 @@ mkdir /mnt/home
 mount /dev/mapper/VolMainArray-lvhome /mnt/home
 mkdir /mnt/boot
 mount  /dev/mapper/VolBootArray-lvboot /mnt/boot
-mkdir /mnt/boot/efi
-#mount /dev/sda1 /mnt/boot/efi
+
+
+[ $BIOS == "efi" ] && mkdir /mnt/boot/efi
+[ $BIOS == "efi" ] && mount /dev/sda1 /mnt/boot/efi
 
 
 pacstrap /mnt base base-devel zsh
 
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
-cp install-arch-raid-chroot /mnt/
-chmod 755 /mnt/install-arch-raid-chroot
+#cp install-arch-raid-chroot /mnt/
+#chmod 755 /mnt/install-arch-raid-chroot
 
 
-arch-chroot /mnt /install-arch-raid-chroot
+arch-chroot /mnt #/install-arch-raid-chroot
 
 
 
