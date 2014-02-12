@@ -61,10 +61,14 @@ sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 mkinitcpio -p linux
 
+
+
 if [[ $BIOS == "efi" ]]; then
+	echo "installing efi grup thingy"
 	pacman -S --noconfirm efibootmgr grub-efi-x86_64
 	grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck --debug
 else
+	echo "installing grup thingy"
 	pacman -S --noconfirm grub-bios
 	grub-install --recheck /dev/sda
 fi
@@ -99,7 +103,7 @@ systemctl enable sshd.service
 
 pacman -S --noconfirm alsa-utils
 pacman -S --noconfirm xorg-server xorg-xinit xorg-server-utils
-pacman -S --noconfirm mesa
+#pacman -S --noconfirm mesa
 
 if [[ $VBOX == "yes" ]]; then
 	pacman -S --noconfirm virtualbox-guest-utils
@@ -107,7 +111,10 @@ if [[ $VBOX == "yes" ]]; then
 	echo 'vboxguest\nvboxsf\nvboxvideo' > /etc/modules-load.d/virtualbox.conf
 else
 	# for ati:
-	# pacman -S --noconfirm xf86-video-ati 
+	# pacman -S --noconfirm xf86-video-ati
+
+	# for intel:
+	# pacman -S --noconfirm xf86-video-intel 
 
 	# for nvidia:
 	# pacman -S --noconfirm xf86-video-nouveau 
@@ -118,6 +125,7 @@ fi
 
 
 
+pacman -S --noconfirm yajl
 
 
 cd /tmp
@@ -144,22 +152,46 @@ systemctl enable gdm.service
 if [[ $NETCONFIGFILE == "" ]]; then
 	pacman -S --noconfirm  networkmanager network-manager-applet
 	systemctl enable NetworkManager.service 
+
+	# pacman -S --noconfirm wicd wicd-gtk
+	# systemctl enable wicd.service
+
 else
-	echo "todo network"
+	cp /root/arch/$NETCONFIGFILE /etc/netctl/
+	netctl enable $NETCONFIGFILE
 fi
 
 sed -i "s/\[daemon\]/\# Enable automatic login for user\n\[daemon\]\nAutomaticLogin=${NEWUSERNAME}\nAutomaticLoginEnable=True/g" /etc/gdm/custom.conf
 
 
 
+#runuser -l ${NEWUSERNAME} -c "gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'"
 
 
 
-pacman -S --noconfirm  terminator blender gimp meld gitg smartmontools firefox rsync sbt scala python2 ipython2 vlc pidgin octave gnuplot
-
-pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles totem
 
 
+pacman -S --noconfirm  terminator blender gimp meld gitg smartmontools firefox rsync sbt scala python2 ipython2 vlc pidgin octave gnuplot deluge rdiff-backup
+
+yaourt -S --noconfirm dropbox nautilus-dropbox
+
+pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles totem gnome-documents gnome-photos tracker evolution
+
+
+#
+# > tune2fs -o journal_data_writeback /dev/sdXY
+# data=writeback,noatime
+#
+
+
+
+if [[ $LAPTOP == "yes" ]]; then
+	pacman -S --noconfirm xf86-input-synaptics
+fi
+
+
+
+chmod 755 /root/arch/arch-server-setup
 /root/arch/arch-server-setup
 
 

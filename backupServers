@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rdiff-backup /home/VirtualBox/Servers/. /backup/VirtualBox/Servers_backup

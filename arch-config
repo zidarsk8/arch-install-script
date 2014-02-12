@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-VBOX=yes
+VBOX=no
 
 
 DRIVE=sda
@@ -9,14 +9,14 @@ DRIVES=abcde
 DRIVESARR=(a b c d e)
 
 
-HOSTNAME=dog
+HOSTNAME=haxor
 
 
 BIOS=bios # or efi
 
 
-SWAPSIZE=2G
-ROOTSIZE=20G
+SWAPSIZE=4G
+ROOTSIZE=30G
 
 
 NEWUSERNAME=zidar
@@ -27,7 +27,7 @@ ROOTPASS=loll
 
 #INTERFACE=wlp0s22f2u2 
 #INTERFACE=enp2s0 
-INTERFACE=enp0s3
+#INTERFACE=enp0s3
 
 
 NETCONFIGFILE=

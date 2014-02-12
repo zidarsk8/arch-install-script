@@ -49,6 +49,9 @@ mount /dev/${DRIVE}5 /mnt/home
 mkdir /mnt/boot
 mount  /dev/${DRIVE}2 /mnt/boot
 
+# mkdir /mnt/backup
+# mount /dev/sdb5 /mnt/backup
+
 if [[ $BIOS == "efi" ]]; then
 	mkdir /mnt/boot/efi
 	mount /dev/${DRIVE}1 /mnt/boot/efi
@@ -64,7 +67,7 @@ chmod 755 /mnt/arch-chroot
 cp arch-config /mnt/
 chmod 755 /mnt/arch-config
 
-arch-chroot /mnt /arch-chroot
+arch-chroot /mnt # /arch-chroot
 
 
 

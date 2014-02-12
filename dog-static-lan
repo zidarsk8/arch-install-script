@@ -1,0 +1,8 @@
+Description='dog internal ip config'
+Interface=enp2s0
+Connection=ethernet
+IP=static
+Address=('192.168.1.5/24')
+Gateway='192.168.1.1'
+DNS=('8.8.8.8' '8.8.4.4')
+

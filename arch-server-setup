@@ -5,7 +5,7 @@ echo "looking for config"
 [[ -a arch-config ]] || cd /root/arch
 [[ -a arch-config ]] || { echo "no config found" ; exit }
 
-echo "starting arch install script"
+echo "starting arch server setup script"
 
 set -k
 source arch-config
@@ -23,16 +23,14 @@ usermod -a -G nopasswdlogin $NEWUSERNAME
 usermod -a -G vboxusers $NEWUSERNAME
 
 
-su $NEWUSERNAME vboxmanage setproperty machinefolder /home/VirtualBox/
+runuser -l $NEWUSERNAME -c 'vboxmanage setproperty machinefolder /home/VirtualBox/'
 
 
 
 mkdir /var/log/nohub
 chown ${NEWUSERNAME}:users /var/log/nohub
-cp -r /root/arch/startVbox /home/${NEWUSERNAME}/.StartVBox
-chmod 755 /home/${NEWUSERNAME}/.StartVBox
-mkdir /home/${NEWUSERNAME}/.config/
-cp -r /root/arch/startVbox.desktop /home/${NEWUSERNAME}/.config/
+cp -r /root/arch/startVbox /etc/profile.d/startVBox.sh
+chmod 755 /etc/profile.d/startVBox.sh
 
 
 
@@ -64,4 +62,11 @@ systemctl start iptables.service
 #cp /root/arch/iptables.rules /etc/iptables/iptables.rules
 
 
+
+#as zidar
+sudo cp /root/arch/backupServers /usr/bin/backupServers
+sudo chmod 755 /usr/bin/backupServers
+cat /root/arch/cronZidarSetup | crontab -
+
+sudo systemctl enable cronie.service
 
