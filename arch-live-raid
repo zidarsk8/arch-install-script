@@ -1,9 +1,18 @@
 #!/bin/zsh
 
-source arch-config
+function error_message {
+    echo "error: $1"
+    exit 1
+}
+
+
+DIRNAME=$(dirname $0)
+
+source "$DIRNAMO/arch-config" || error_message "can't find config file"
 
 [ $BIOS == "efi" ] && modprobe efivars
 
+modprobe raid0
 modprobe raid1
 modprobe raid5
 modprobe dm-mod
@@ -14,10 +23,14 @@ modprobe dm-mod
 	##mdadm -S /dev/md1
 	##mdadm --zero-superblock /dev/sd[abcd]2
 	##mdadm --zero-superblock /dev/sd[abcd]3
+
 	
-for i in ${DRIVESARR[*]}
-do
-	dd if=/dev/zero of=/dev/sd${i} bs=1M count=100
+CLEAR_BLOCKS=2000
+for i in ${DRIVESARR[*]}; do
+	DEV="/dev/sd${i}"
+	echo "clearing device: $DEV"
+	dd if=/dev/zero of=$DEV bs=512 count=$CLEAR_BLOCKS
+	dd if=/dev/zero of=$DEV bs=512 seek=$(( $(blockdev --getsz $DEV) - $CLEAR_BLOCKS )) count=$CLEAR_BLOCKS
 done
 
 
@@ -28,15 +41,17 @@ done
 	#####
 
 
+mkfs.btrfs -d raid1 /dev/sd[${DRIVES}]
+
 if [[ $BIOS = "efi" ]]; then
-	echo "2\no\ny\nn\n\n\n+100M\nef00\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
+	echo "2\no\ny\n\nn\n\n\n+100M\nef00\n\nn\n\n\n+200M\n\n\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/sd$BCACHE_DRIVESARR[1]
 else
 	echo "2\no\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
 fi
 
 	# copy partition table to other hard drives
 
-sgdisk --backup=table /dev/sda
+sgdisk --backup=table /dev/sd$DRIVESARR[1]
 for i in ${DRIVESARR[*]}
 do
 	sgdisk --load-backup=table /dev/sd${i} 

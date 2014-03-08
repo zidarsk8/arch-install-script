@@ -14,6 +14,18 @@ if [[ $BIOS == "efi" ]]; then
 fi
 
 
+modprobe raid1
+modprobe raid5
+modprobe dm-mod
+
+sed -i 's/MODULES=""/MODULES="dm_mod raid1 raid5"/' /etc/mkinitcpio.conf
+sed -i 's/udev/udev mdadm_udev/' /etc/mkinitcpio.conf
+sed -i 's/filesystems/lvm2 filesystems/' /etc/mkinitcpio.conf
+
+
+mdadm --examine --scan > /etc/mdadm.conf
+
+
 
 hostname $HOSTNAME
 echo ${HOSTNAME} > /etc/hostname
@@ -175,7 +187,7 @@ pacman -S --noconfirm  terminator blender gimp meld gitg smartmontools firefox r
 
 yaourt -S --noconfirm dropbox nautilus-dropbox
 
-pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles totem gnome-documents gnome-photos tracker evolution
+pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles totem gnome-documents gnome-photos tracker evolution totem-plugin gnome-music gnome-online-miners bijiben
 
 
 #

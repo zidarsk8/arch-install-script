@@ -5,17 +5,20 @@ VBOX=no
 
 DRIVE=sda
 
-DRIVES=abcde
-DRIVESARR=(a b c d e)
+DRIVES=ab
+DRIVESARR=(a b)
+
+BCACHE_DRIVES=cd
+BCACHE_DRIVESARR=(c d)
 
 
-HOSTNAME=haxor
+HOSTNAME=dog
 
 
-BIOS=bios # or efi
+BIOS=efi # or efi
 
 
-SWAPSIZE=4G
+SWAPSIZE=16G
 ROOTSIZE=30G
 
 
