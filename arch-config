@@ -3,7 +3,8 @@
 VBOX=no
 
 
-DRIVE=sda
+
+CLEAR_BLOCKS=2000000 #dd zero blocks
 
 DRIVES=ab
 DRIVESARR=(a b)

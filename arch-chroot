@@ -14,13 +14,15 @@ if [[ $BIOS == "efi" ]]; then
 fi
 
 
+modprobe raid0
 modprobe raid1
 modprobe raid5
 modprobe dm-mod
+modprobe bcache
 
-sed -i 's/MODULES=""/MODULES="dm_mod raid1 raid5"/' /etc/mkinitcpio.conf
+sed -i 's/MODULES=""/MODULES="dm_mod raid0 raid1 raid5"/' /etc/mkinitcpio.conf
 sed -i 's/udev/udev mdadm_udev/' /etc/mkinitcpio.conf
-sed -i 's/filesystems/lvm2 filesystems/' /etc/mkinitcpio.conf
+sed -i 's/filesystems/bcache filesystems/' /etc/mkinitcpio.conf
 
 
 mdadm --examine --scan > /etc/mdadm.conf
@@ -133,24 +135,6 @@ else
 	pacman -S --noconfirm nvidia 
 fi
 
-
-
-
-
-pacman -S --noconfirm yajl
-
-
-cd /tmp
-wget https://aur.archlinux.org/packages/pa/package-query/package-query.tar.gz
-tar -xpvf package-query.tar.gz
-cd package-query
-makepkg -i --asroot --noconfirm
-
-cd /tmp
-wget https://aur.archlinux.org/packages/ya/yaourt/yaourt.tar.gz
-tar -xpvf yaourt.tar.gz
-cd yaourt
-makepkg -i --asroot --noconfirm
 
 
 

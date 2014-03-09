@@ -1,21 +1,36 @@
 #!/bin/zsh
 
 function error_message {
-    echo "error: $1"
+    echo "\nerror: $1"
     exit 1
 }
 
+DRY=true
 
+echo "\nset -k"
+$DRY || set -k
+
+
+echo "\nDIRNAME=$(dirname $0)"
 DIRNAME=$(dirname $0)
 
-source "$DIRNAMO/arch-config" || error_message "can't find config file"
+echo "\nsource \"$DIRNAME/arch-config\""
+source "$DIRNAME/arch-config" || error_message "can't find config file"
+echo "\nsource \"$DIRNAME/functions.sh\""
+source "$DIRNAME/functions.sh" || error_message "can't find functions.sh file"
 
-[ $BIOS == "efi" ] && modprobe efivars
 
-modprobe raid0
-modprobe raid1
-modprobe raid5
-modprobe dm-mod
+
+echo "\nmodprobe raid0"
+$DRY || modprobe raid0
+echo "\nmodprobe raid1"
+$DRY || modprobe raid1
+echo "\nmodprobe raid5"
+$DRY || modprobe raid5
+echo "\nmodprobe dm-mod"
+$DRY || modprobe dm-mod
+echo "\nmodprobe bcache"
+$DRY || modprobe bcache
 
 
 	##dmsetup remove_all
@@ -25,12 +40,22 @@ modprobe dm-mod
 	##mdadm --zero-superblock /dev/sd[abcd]3
 
 	
-CLEAR_BLOCKS=2000
+
 for i in ${DRIVESARR[*]}; do
 	DEV="/dev/sd${i}"
-	echo "clearing device: $DEV"
-	dd if=/dev/zero of=$DEV bs=512 count=$CLEAR_BLOCKS
-	dd if=/dev/zero of=$DEV bs=512 seek=$(( $(blockdev --getsz $DEV) - $CLEAR_BLOCKS )) count=$CLEAR_BLOCKS
+	echo "\n# clearing device: $DEV"
+	echo "\ndd if=/dev/zero of=$DEV bs=512 count=$CLEAR_BLOCKS"
+	$DRY || dd if=/dev/zero of=$DEV bs=512 count=$CLEAR_BLOCKS
+	echo "\ndd if=/dev/zero of=$DEV bs=512 seek=$(( $(blockdev --getsz $DEV) - $CLEAR_BLOCKS )) count=$CLEAR_BLOCKS"
+	$DRY || dd if=/dev/zero of=$DEV bs=512 seek=$(( $(blockdev --getsz $DEV) - $CLEAR_BLOCKS )) count=$CLEAR_BLOCKS
+done
+
+
+for i in ${BCACHE_DRIVESARR[*]}; do
+	DEV="/dev/sd${i}"
+	echo "\n# clearing device: $DEV"
+	echo "\ndd if=/dev/zero of=$DEV bs=1M"
+	$DRY || dd if=/dev/zero of=$DEV bs=1M
 done
 
 
@@ -41,25 +66,41 @@ done
 	#####
 
 
-mkfs.btrfs -d raid1 /dev/sd[${DRIVES}]
+#mkfs.btrfs -d raid1 /dev/sd[${DRIVES}]
 
 if [[ $BIOS = "efi" ]]; then
-	echo "2\no\ny\n\nn\n\n\n+100M\nef00\n\nn\n\n\n+200M\n\n\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/sd$BCACHE_DRIVESARR[1]
+	echo "\necho \"2\\\no\\\ny\\\nn\\\n\\\n\\\n+100M\\\nef00\\\nn\\\n\\\n\\\n+200M\\\n\\\nn\\\n\\\n\\\n+${SWAPSIZE}\\\n8200\\\nn\\\n\\\n\\\n\\\nfd00\\\np\\\nw\\\ny\\\n\" | gdisk /dev/sd$BCACHE_DRIVESARR[1]"
+	$DRY || echo "\n2\no\ny\nn\n\n\n+100M\nef00\nn\n\n\n+200M\n\nn\n\n\n+${SWAPSIZE}\n8200\nn\n\n\n\nfd00\np\nw\ny\n" | gdisk /dev/sd$BCACHE_DRIVESARR[1]
 else
-	echo "2\no\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
+	echo "\n2\no\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
 fi
 
 	# copy partition table to other hard drives
 
-sgdisk --backup=table /dev/sd$DRIVESARR[1]
-for i in ${DRIVESARR[*]}
+echo "\nsgdisk --backup=table /dev/sd$BCACHE_DRIVESARR[1]"
+$DRY || sgdisk --backup=table /dev/sd$BCACHE_DRIVESARR[1]
+for i in ${BCACHE_DRIVESARR[*]}
 do
-	sgdisk --load-backup=table /dev/sd${i} 
+	echo "\nsgdisk --load-backup=table /dev/sd${i}" 
+	$DRY || sgdisk --load-backup=table /dev/sd${i} 
+        echo "partprobe /dev/sd${i}"
+        $DRY || partprobe /dev/sd${i}
 done
 
 
-mdadm --create /dev/md0 --level=1 --raid-devices=${#DRIVES} --metadata=1.0 /dev/sd[${DRIVES}]2
-mdadm --create /dev/md1 --level=5 --raid-devices=${#DRIVES} /dev/sd[${DRIVES}]3
+echo "\nmdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]4"
+$DRY || mdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]4
+
+
+install_yaourt
+
+echo "\nyaourt -S --noconfirm bcache-tools"
+$DRY || yaourt -S --noconfirm bcache-tools
+
+
+echo "\nmake-bcache --wipe-bcache --writeback -B /dev/sd[${DRIVES}] -C /dev/md0"
+$DRY || make-bcache --wipe-bcache --writeback -B /dev/sd[${DRIVES}] -C /dev/md0
+
 
 	# monitor 
 	# watch -n 1 cat /proc/mdstat
@@ -76,57 +117,56 @@ mdadm --create /dev/md1 --level=5 --raid-devices=${#DRIVES} /dev/sd[${DRIVES}]3
 
 
 
-pvcreate /dev/md0
-pvcreate /dev/md1
-pvdisplay
-
-vgcreate VolBootArray /dev/md0
-vgcreate VolMainArray /dev/md1
-vgdisplay
-
-
-lvcreate -l +100%FREE VolBootArray -n lvboot
-
-lvcreate -C y -L ${SWAPSIZE} VolMainArray -n lvswap
-lvcreate -L      ${ROOTSIZE} VolMainArray -n lvroot
-lvcreate -l      +100%FREE   VolMainArray -n lvhome
-lvdisplay
 
 
 
-for i in ${DRIVESARR[*]}
+for i in ${BCACHE_DRIVESARR[*]}
 do
-	mkfs.vfat -F 32 /dev/sd${i}1
+	echo "\nmkfs.vfat -F 32 /dev/sd${i}1"
+	$DRY || mkfs.vfat -F 32 /dev/sd${i}1
+	echo "\nmkfs.ext3 -L boot /dev/sd${i}2"
+	$DRY || mkfs.ext3 -L boot /dev/sd${i}2
+	echo "\nmkswap -L swap_${i} /dev/sd${i}3"
+	$DRY || mkswap -L swap_${i} /dev/sd${i}3
+	echo "\nswapon /dev/sd${i}3"
+	$DRY || swapon /dev/sd${i}3
+
 done
 
-mkfs.ext2 -L boot /dev/mapper/VolBootArray-lvboot
-mkfs.ext4 -L root /dev/mapper/VolMainArray-lvroot
-mkfs.ext4 -L home /dev/mapper/VolMainArray-lvhome
-mkswap -L swap /dev/mapper/VolMainArray-lvswap
-swapon /dev/mapper/VolMainArray-lvswap
+
+echo "\nmkfs.btrfs -f -d raid1 /dev/bcache0 /dev/bcache1"
+$DRY || mkfs.btrfs -f -d raid1 /dev/bcache0 /dev/bcache1
+
+echo "\nmount /dev/bcache0 /mnt/"
+$DRY || mount /dev/bcache0 /mnt/
+echo "\nbtrfs subvolume create /mnt/home"
+$DRY || btrfs subvolume create /mnt/home
+
+echo "\nmkdir /mnt/boot"
+$DRY || mkdir /mnt/boot
+echo "\nmount  /dev/sdc2 /mnt/boot"
+$DRY || mount  /dev/sdc2 /mnt/boot
 
 
 
-mount /dev/mapper/VolMainArray-lvroot /mnt
-mkdir /mnt/home 
-mount /dev/mapper/VolMainArray-lvhome /mnt/home
-mkdir /mnt/boot
-mount  /dev/mapper/VolBootArray-lvboot /mnt/boot
+echo "\nmkdir /mnt/boot/efi"
+$DRY || mkdir /mnt/boot/efi
+echo "\nmount /dev/sdc1 /mnt/boot/efi"
+$DRY || mount /dev/sdc1 /mnt/boot/efi
 
 
-[ $BIOS == "efi" ] && mkdir /mnt/boot/efi
-[ $BIOS == "efi" ] && mount /dev/sda1 /mnt/boot/efi
+echo "\npacstrap /mnt base base-devel zsh"
+$DRY || pacstrap /mnt base base-devel zsh
 
-
-pacstrap /mnt base base-devel zsh
-
-genfstab -U -p /mnt >> /mnt/etc/fstab
+echo "\ngenfstab -U -p /mnt >> /mnt/etc/fstab"
+$DRY || genfstab -U -p /mnt >> /mnt/etc/fstab
 
 #cp install-arch-raid-chroot /mnt/
 #chmod 755 /mnt/install-arch-raid-chroot
 
 
-arch-chroot /mnt #/install-arch-raid-chroot
+echo "\narch-chroot /mnt" #/install-arch-raid-chroot
+$DRY || arch-chroot /mnt #/install-arch-raid-chroot
 
 
 
