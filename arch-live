@@ -1,6 +1,16 @@
 #!/bin/zsh
 
-echo "looking for config"
+DIRNAME=$(dirname $0)
+
+if [[ -d "/sys/firmware/efi" ]]; then
+    echo "using uefi boot"
+    BIOS="efi"
+else 
+    echo "using normal bios boot"
+    BIOS="bios"
+fi
+
+
 [[ -a arch-config ]] || cd /root/arch
 [[ -a arch-config ]] || { echo "no config found" ; exit }
 
@@ -21,7 +31,6 @@ hostname $HOSTNAME
 
 dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
 
-
 if [[ $BIOS == "efi" ]]; then
 	BOOTPART=ef00
 else
@@ -37,12 +46,15 @@ if [[ $BIOS == "efi" ]]; then
 fi
 
 
+
+
 mkfs.ext2 -L boot /dev/${DRIVE}2
 mkswap    -L swap /dev/${DRIVE}3
 mkfs.ext4 -L root /dev/${DRIVE}4
 mkfs.ext4 -L home /dev/${DRIVE}5
 
 swapon /dev/${DRIVE}3
+
 
 
 

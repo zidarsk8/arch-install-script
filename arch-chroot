@@ -8,6 +8,7 @@ echo "starting arch"
 
 set -k
 source arch-config
+source functions.sh
 
 if [[ $BIOS == "efi" ]]; then
 	modprobe efivars
@@ -16,16 +17,35 @@ fi
 
 modprobe raid0
 modprobe raid1
-modprobe raid5
 modprobe dm-mod
-modprobe bcache
 
-sed -i 's/MODULES=""/MODULES="dm_mod raid0 raid1 raid5"/' /etc/mkinitcpio.conf
+sed -i 's/MODULES=""/MODULES="dm_mod raid1"/' /etc/mkinitcpio.conf
 sed -i 's/udev/udev mdadm_udev/' /etc/mkinitcpio.conf
-sed -i 's/filesystems/bcache filesystems/' /etc/mkinitcpio.conf
+#sed -i 's/filesystems/bcache filesystems/' /etc/mkinitcpio.conf
 
 
 mdadm --examine --scan > /etc/mdadm.conf
+
+install_yaourt
+
+yaourt -S --noconfirm spl-utils spl zfs-utils zfs
+
+
+id_sda4="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sda4 | head -n 1 | awk '{print $9}')
+id_sdb4="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sdb4 | head -n 1 | awk '{print $9}')
+id_sdc2="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sdc2 | head -n 1 | awk '{print $9}')
+id_sdd2="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sdd2 | head -n 1 | awk '{print $9}')
+id_sdc3="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sdc3 | head -n 1 | awk '{print $9}')
+id_sdd3="/dev/disk/by-id/"$(ls -al /dev/disk/by-id | grep sdd3 | head -n 1 | awk '{print $9}')
+
+
+modprobe zfs
+
+zpool create zhome mirror $id_sda4 $id_sdb4 -m /home
+zpool add zhome log mirror $id_sdc2 $id_sdd2
+zpool add zhome cache $id_sdc3 $id_sdd3
+
+systemctl enable zfs
 
 
 

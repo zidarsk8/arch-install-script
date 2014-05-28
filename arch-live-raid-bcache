@@ -33,13 +33,6 @@ echo "\nmodprobe bcache"
 $DRY || modprobe bcache
 
 
-	##dmsetup remove_all
-	##mdadm -S /dev/md0
-	##mdadm -S /dev/md1
-	##mdadm --zero-superblock /dev/sd[abcd]2
-	##mdadm --zero-superblock /dev/sd[abcd]3
-
-	
 
 for i in ${DRIVESARR[*]}; do
 	DEV="/dev/sd${i}"
@@ -59,17 +52,11 @@ for i in ${BCACHE_DRIVESARR[*]}; do
 done
 
 
-	#####
-	# 1 - ef00 for efi systems, ef02 on bios systems with gpt
-	# 2 - /boot can't be in raid5 array
-	# 3 - everything else will be on the lvm on top of raid5
-	#####
-
 
 #mkfs.btrfs -d raid1 /dev/sd[${DRIVES}]
 
 if [[ $BIOS = "efi" ]]; then
-	echo "\necho \"2\\\no\\\ny\\\nn\\\n\\\n\\\n+100M\\\nef00\\\nn\\\n\\\n\\\n+200M\\\n\\\nn\\\n\\\n\\\n+${SWAPSIZE}\\\n8200\\\nn\\\n\\\n\\\n\\\nfd00\\\np\\\nw\\\ny\\\n\" | gdisk /dev/sd$BCACHE_DRIVESARR[1]"
+	echo "\necho \"2\\\no\\\ny\\\nn\\\n\\\n\\\n+100M\\\nef00\\\nn\\\n\\\n\\\n+200M\\\n\\\nn\\\n\\\n\\\n+${SWAPSIZE}\\\n8200\\\nn\\\n\\\n\\\n+${BCACHESIZE}\\\nfd00\\\nn\\\n\\\n\\\n+100M\\\nbf00\\\np\\\nw\\\ny\\\n\" | gdisk /dev/sd$BCACHE_DRIVESARR[1]"
 	$DRY || echo "\n2\no\ny\nn\n\n\n+100M\nef00\nn\n\n\n+200M\n\nn\n\n\n+${SWAPSIZE}\n8200\nn\n\n\n\nfd00\np\nw\ny\n" | gdisk /dev/sd$BCACHE_DRIVESARR[1]
 else
 	echo "\n2\no\ny\nn\n\n\n+100M\nef02\nn\n\n\n+100M\nfd00\nn\n\n\n-50M\nfd00\np\nw\ny\n" | gdisk /dev/sd$DRIVESARR[1]
@@ -88,8 +75,8 @@ do
 done
 
 
-echo "\nmdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]4"
-$DRY || mdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]4
+echo "\nmdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]3" #swap
+$DRY || mdadm --create /dev/md0 --level=1 --metadata=1.2 --raid-devices=${#BCACHE_DRIVES} /dev/sd[${BCACHE_DRIVES}]3
 
 
 install_yaourt
