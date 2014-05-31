@@ -1,33 +1,42 @@
 
 function install_yaourt {
 	local aa=$(pwd)
-	echo "\npacman -Syy --noconfirm yajl wget binutils base-devel"
-	$DRY || pacman -Syy --noconfirm yajl wget binutils base-devel
+	pacman -Syy --noconfirm yajl wget binutils base-devel
 
-	echo "\ncd /tmp"
-	$DRY || cd /tmp
-	echo "\nwget https://aur.archlinux.org/packages/pa/package-query/package-query.tar.gz"
-	$DRY || wget https://aur.archlinux.org/packages/pa/package-query/package-query.tar.gz
-	echo "\ntar -xpvf package-query.tar.gz"
-	$DRY || tar -xpvf package-query.tar.gz
-	echo "\ncd package-query"
-	$DRY || cd package-query
-	echo "\nmakepkg -i --asroot --noconfirm"
-	$DRY || makepkg -i --asroot --noconfirm
+	cd /tmp
+
+	wget https://aur.archlinux.org/packages/pa/package-query/package-query.tar.gz
+	tar -xpvf package-query.tar.gz
+	cd package-query
+	makepkg -i --asroot --noconfirm
 	
-	echo "\ncd /tmp"
-	$DRY || cd /tmp
-	echo "\nwget https://aur.archlinux.org/packages/ya/yaourt/yaourt.tar.gz"
-	$DRY || wget https://aur.archlinux.org/packages/ya/yaourt/yaourt.tar.gz
-	echo "\ntar -xpvf yaourt.tar.gz"
-	$DRY || tar -xpvf yaourt.tar.gz
-	echo "\ncd yaourt"
-	$DRY || cd yaourt
-	echo "\nmakepkg -i --asroot --noconfirm"
-	$DRY || makepkg -i --asroot --noconfirm
+	cd /tmp
 
-	echo "\ncd $aa"
-	$DRY || cd $aa
+	wget https://aur.archlinux.org/packages/ya/yaourt/yaourt.tar.gz
+	tar -xpvf yaourt.tar.gz
+	cd yaourt
+	makepkg -i --asroot --noconfirm
+
+	cd $aa
 }
+
+function clear_disk {
+
+    if [[ "$#" -lt 1 ]]; then
+        echo "usage: clear_disk 'sdX' [blocks]"
+        return 1
+    fi
+
+    local disk=/dev/$1
+    
+    local clear_blocks=2000000
+    [[ "$#" -eq 2 ]] && local clear_blocks=$2
+
+    dd if=/dev/zero of=$disk bs=512 count=$clear_blocks
+    dd if=/dev/zero of=$disk bs=512 seek=$(( $(blockdev --getsz $disk) - $clear_blocks )) count=$clear_blocks
+
+}
+
+
 
 
