@@ -86,12 +86,6 @@ mount /dev/sda2 /mnt/boot
 
 pacstrap /mnt base base-devel zsh    
 
-umount /mnt/boot
-umount /dev/bcache0
-umount /dev/bcache0
-umount /dev/bcache0
-umount /dev/bcache0
-
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
 cat !$
@@ -104,10 +98,10 @@ zsh
 set -k
 
 
-arch-chroot /zroot
-
-zsh
-
-set -k
+umount /mnt/boot
+umount /dev/bcache0
+umount /dev/bcache0
+umount /dev/bcache0
+umount /dev/bcache0
 
 

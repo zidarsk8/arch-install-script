@@ -23,10 +23,6 @@ if [[ $BIOS == "efi" ]]; then
 	modprobe efivars
 fi
 
-modprobe raid1
-modprobe raid5
-modprobe dm-mod
-
 hostname $HOSTNAME
 
 dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k

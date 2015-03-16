@@ -28,12 +28,15 @@ sed -i 's/MODULES=""/MODULES="bcache crc32c-intel"/' /etc/mkinitcpio.conf
 
 
 sed -i 's/MODULES=""/MODULES="bcache"/' /etc/mkinitcpio.conf
-sed -i 's/block filesystemsq/block bcache filesystems/' /etc/mkinitcpio.conf
+sed -i 's/block filesystems/block bcache filesystems/' /etc/mkinitcpio.conf
+
+grep bcache /etc/mkinitcpio.conf
+
 
 
 install_yaourt
 
-
+yaourt -S --noconfirm bcache-tools
 
 hostname $HOSTNAME
 echo ${HOSTNAME} > /etc/hostname
