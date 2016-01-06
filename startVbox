@@ -1,9 +1,0 @@
-#!/bin/bash
-
-[[ -d /home/VirtualBox/Servers  ]] || exit
-
-for i in /home/VirtualBox/Servers/* ; do 
-	bn=$(basename "$i")
-	nohup VBoxHeadless -s $bn -v on &> /var/log/nohub/$bn.log &
-done
-

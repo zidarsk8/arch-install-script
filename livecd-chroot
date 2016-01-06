@@ -1,14 +1,9 @@
-
-
-
 wget http://mirrors.dotsrc.org/archlinux/iso/2014.02.01/arch/x86_64/root-image.fs.sfs
-
 
 sudo unsquashfs -d /squashfs-root root-image.fs.sfs
 
 sudo mkdir /arch
 sudo mount -o loop /squashfs-root/root-image.fs /arch
-
 
 sudo mount -t proc none /arch/proc
 sudo mount -t sysfs none /arch/sys
@@ -16,13 +11,10 @@ sudo mount -o bind /dev /arch/dev
 sudo mount -o bind /dev/pts /arch/dev/pts # important for pacman (for signature check)
 sudo cp -L /etc/resolv.conf /arch/etc #this is needed to use networking within the chroot
 
-
-
 sudo chroot /arch zsh
 mkdir /run/shm #run in chroot 
 pacman-key --init
 pacman-key --populate archlinux
-
 
 sudo umount /arch/dev/pts # important for pacman (for signature check)
 sudo umount /arch/dev
@@ -30,5 +22,3 @@ sudo umount /arch/sys
 sudo umount /arch/proc
 
 sudo umount /arch
-
-

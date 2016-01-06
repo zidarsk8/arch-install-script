@@ -1,4 +1,3 @@
-
 function install_yaourt {
 	local aa=$(pwd)
 	pacman -Syy --noconfirm yajl wget binutils base-devel
@@ -36,7 +35,3 @@ function clear_disk {
     dd if=/dev/zero of=$disk bs=512 seek=$(( $(blockdev --getsz $disk) - $clear_blocks )) count=$clear_blocks
 
 }
-
-
-
-
