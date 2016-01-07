@@ -1,20 +1,25 @@
 function install_yaourt {
 	local aa=$(pwd)
-	pacman -Syy --noconfirm yajl wget binutils base-devel
+	pacman -Syy --noconfirm wget 
 
 	cd /tmp
 
-	wget https://aur.archlinux.org/packages/pa/package-query/package-query.tar.gz
+	wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
 	tar -xpvf package-query.tar.gz
+	chmod 777 package-query
 	cd package-query
-	makepkg -i --asroot --noconfirm
+	sudo -u nobody makepkg --noconfirm
+  pacman --noconfirm -U package-query*.xz
+
 	
 	cd /tmp
 
-	wget https://aur.archlinux.org/packages/ya/yaourt/yaourt.tar.gz
+	wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
 	tar -xpvf yaourt.tar.gz
+  chmod 777 yaourt
 	cd yaourt
-	makepkg -i --asroot --noconfirm
+	sudo -u nobody makepkg --noconfirm
+  pacman --noconfirm -U yaourt*.xz
 
 	cd $aa
 }

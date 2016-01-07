@@ -1,6 +1,13 @@
 #!/bin/zsh
 
-DIRNAME=$(dirname $0)
+set -o nounset
+set -o errexit
+
+SWAP_SIZE=8G
+ROOT_SIZE=100G
+DRIVE=sdc
+
+
 
 if [[ -d "/sys/firmware/efi" ]]; then
     echo "using uefi boot"
@@ -10,78 +17,30 @@ else
     BIOS="bios"
 fi
 
-
-[[ -a arch-config ]] || cd /root/arch
-[[ -a arch-config ]] || { echo "no config found" ; exit }
-
-echo "starting arch install script"
-
-source arch-config
-
-
-if [[ $BIOS == "efi" ]]; then
-	modprobe efivars
-fi
-
-hostname $HOSTNAME
-
-dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
-
 if [[ $BIOS == "efi" ]]; then
 	BOOTPART=ef00
 else
 	BOOTPART=ef02
 fi
 
-echo "2\no\ny\nn\n\n\n+128M\n${BOOTPART}\nn\n\n\n+512M\n\nn\n\n\n+${SWAPSIZE}\n8200\nn\n\n\n+${ROOTSIZE}\n\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
+hostname $HOSTNAME
 
-
+dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
+echo "2\nn\n\n+128M\n+384M\n${BOOTPART}\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
 
 if [[ $BIOS == "efi" ]]; then
 	mkfs.vfat -F 32 /dev/${DRIVE}1
 fi
 
+mkfs.btrfs -L broot /dev/${DRIVE}2
 
-
-
-mkfs.ext2 -L boot /dev/${DRIVE}2
-mkswap    -L swap /dev/${DRIVE}3
-mkfs.ext4 -L root /dev/${DRIVE}4
-mkfs.ext4 -L home /dev/${DRIVE}5
-
-swapon /dev/${DRIVE}3
-
-
-
-
-
-mount /dev/${DRIVE}4 /mnt
-mkdir /mnt/home 
-mount /dev/${DRIVE}5 /mnt/home
+mount /dev/${DRIVE}2 /mnt
 mkdir /mnt/boot
-mount  /dev/${DRIVE}2 /mnt/boot
-
-# mkdir /mnt/backup
-# mount /dev/sdb5 /mnt/backup
-
-if [[ $BIOS == "efi" ]]; then
-	mkdir /mnt/boot/efi
-	mount /dev/${DRIVE}1 /mnt/boot/efi
-fi
+mount /dev/${DRIVE}1 /mnt/boot
 
 pacstrap /mnt base base-devel zsh
 
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
-cp -r /root/arch /mnt/root/
-cp arch-chroot /mnt/
-chmod 755 /mnt/arch-chroot
-cp arch-config /mnt/
-chmod 755 /mnt/arch-config
-
-arch-chroot /mnt # /arch-chroot
-
-
-
-
+arch-chroot /mnt
 
