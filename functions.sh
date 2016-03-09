@@ -1,27 +1,27 @@
 function install_yaourt {
-	local aa=$(pwd)
-	pacman -Syy --noconfirm wget 
+    local aa=$(pwd)
+    pacman -Syy --noconfirm wget yajl
 
-	cd /tmp
+    cd /tmp
 
-	wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
-	tar -xpvf package-query.tar.gz
-	chmod 777 package-query
-	cd package-query
-	sudo -u nobody makepkg --noconfirm
-  pacman --noconfirm -U package-query*.xz
+    wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
+    tar -xpvf package-query.tar.gz
+    chmod 777 package-query
+    cd package-query
+    sudo -u nobody makepkg --noconfirm
+    pacman --noconfirm -U package-query*.xz
 
-	
-	cd /tmp
+    
+    cd /tmp
 
-	wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
-	tar -xpvf yaourt.tar.gz
-  chmod 777 yaourt
-	cd yaourt
-	sudo -u nobody makepkg --noconfirm
-  pacman --noconfirm -U yaourt*.xz
+    wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
+    tar -xpvf yaourt.tar.gz
+    chmod 777 yaourt
+    cd yaourt
+    sudo -u nobody makepkg --noconfirm
+    pacman --noconfirm -U yaourt*-any.pkg.tar.xz
 
-	cd $aa
+    cd $aa
 }
 
 function clear_disk {
