@@ -1,6 +1,6 @@
 function install_yaourt {
 	local aa=$(pwd)
-	pacman -Syy --noconfirm wget 
+	pacman -Syy --noconfirm wget yajl
 
 	cd /tmp
 
