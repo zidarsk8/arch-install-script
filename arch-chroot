@@ -2,25 +2,20 @@
 
 set -k
 
-HOSTNAME="doghouse"
+HOSTNAME=dashie
 NEWUSERNAME=zidar
 USERPASS=pass
 ROOTPASS=pass
 
 
-install_yaourt
-
 hostname $HOSTNAME
 echo ${HOSTNAME} > /etc/hostname
-
 
 
 sed -i 's/#sl_SI.UTF-8/sl_SI.UTF-8/' /etc/locale.gen
 sed -i 's/#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 sed -i 's/#en_GB.UTF-8/en_GB.UTF-8/' /etc/locale.gen
 locale-gen
-
-
 
 
 echo LANG=en_US.UTF-8 > /etc/locale.conf
@@ -31,41 +26,33 @@ sed -i '$ a FONT=' /etc/vconsole.conf
 sed -i '$ a FONT_MAP=' /etc/vconsole.conf
 
 
-
-
 pacman -S --noconfirm ntp 
 ln -s /usr/share/zoneinfo/Europe/Ljubljana /etc/localtime
 ntpd -qg
 hwclock --systohc --utc
 
 
-
 sed -i "s/\#\[multilib\]/\[multilib\]\nInclude = \/etc\/pacman\.d\/mirrorlist/g" /etc/pacman.conf 
-
 
 
 pacman -Syy
 pacman -S --noconfirm bash-completion vim sudo git openssh dosfstools wget htop
 sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
-# 
-# mkinitcpio -p linux
-# bootctl install
-# echo "title          Arch Linux" > /boot/loader/entries/arch.conf
-# echo "linux          /vmlinuz-linux" >> /boot/loader/entries/arch.conf
-# echo "initrd         /initramfs-linux.img" >> /boot/loader/entries/arch.conf
-# echo "options        root=UUID=<change me> rw" >> /boot/loader/entries/arch.conf
-# 
 
-pacman -S --noconfirm grub efibootmgr
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
+mkinitcpio -p linux
+bootctl install
+echo "title          Arch Linux" > /boot/loader/entries/arch.conf
+echo "linux          /vmlinuz-linux" >> /boot/loader/entries/arch.conf
+echo "initrd         /initramfs-linux.img" >> /boot/loader/entries/arch.conf
+echo "options        root=UUID=<change me> rw rootflags=subvol=@" >> /boot/loader/entries/arch.conf
 
 
-mkdir -p /boot/grub/locale
-cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-
-grub-mkconfig -o /boot/grub/grub.cfg
-
+# pacman -S --noconfirm grub efibootmgr
+# grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
+# mkdir -p /boot/grub/locale
+# cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+# grub-mkconfig -o /boot/grub/grub.cfg
 
 
 

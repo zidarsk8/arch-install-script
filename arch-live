@@ -3,40 +3,31 @@
 set -o nounset
 set -o errexit
 
-SWAP_SIZE=8G
-ROOT_SIZE=100G
-DRIVE=sdc
-
-
-
-if [[ -d "/sys/firmware/efi" ]]; then
-    echo "using uefi boot"
-    BIOS="efi"
-else 
-    echo "using normal bios boot"
-    BIOS="bios"
-fi
-
-if [[ $BIOS == "efi" ]]; then
-	BOOTPART=ef00
-else
-	BOOTPART=ef02
-fi
+DRIVE=nvme0n1
+BOOTPART=ef00
+HOSTNAME=dashie
 
 hostname $HOSTNAME
 
 dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
 echo "2\nn\n\n+128M\n+384M\n${BOOTPART}\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
 
-if [[ $BIOS == "efi" ]]; then
-	mkfs.vfat -F 32 /dev/${DRIVE}1
-fi
+mkfs.vfat -F 32 /dev/${DRIVE}p1
 
-mkfs.btrfs -L broot /dev/${DRIVE}2
+mkfs.btrfs -L broot /dev/${DRIVE}p2
 
-mount /dev/${DRIVE}2 /mnt
+mount /dev/${DRIVE}p2 /mnt
+cd /mnt
+btrfs subvolume create @
+btrfs subvolume create @home
+cd /root
+umount /mnt 
+
+mount -o noatime,nodiratime,subvol=@ /dev/${DRIVE}p2 /mnt
 mkdir /mnt/boot
-mount /dev/${DRIVE}1 /mnt/boot
+mkdir /mnt/home
+mount -o noatime,nodiratime,subvol=@home /dev/${DRIVE}p2 /mnt/home
+mount /dev/${DRIVE}p1 /mnt/boot
 
 pacstrap /mnt base base-devel zsh
 
