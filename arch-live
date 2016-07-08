@@ -3,44 +3,40 @@
 set -o nounset
 set -o errexit
 
-SWAP_SIZE=8G
-ROOT_SIZE=100G
-DRIVE=sdc
+DRIVEA=sda
+DRIVEB=sdb
+HOSTNAME=dashie
 
 
-
-if [[ -d "/sys/firmware/efi" ]]; then
-    echo "using uefi boot"
-    BIOS="efi"
-else 
-    echo "using normal bios boot"
-    BIOS="bios"
-fi
-
-if [[ $BIOS == "efi" ]]; then
-	BOOTPART=ef00
-else
-	BOOTPART=ef02
-fi
+BOOTPART=ef02
 
 hostname $HOSTNAME
 
-dd if=/dev/zero of=/dev/$DRIVE bs=1M count=1k
-echo "2\nn\n\n+128M\n+384M\n${BOOTPART}\nn\n\n\n\n\np\nw\ny\n" | gdisk /dev/$DRIVE
+dd if=/dev/zero of=/dev/$DRIVEA bs=1M count=1k
+echo "2\nn\n\n+128M\n+384M\n${BOOTPART}\nn\n\n\n468862094\n\np\nw\ny\n" | gdisk /dev/$DRIVEA
 
-if [[ $BIOS == "efi" ]]; then
-	mkfs.vfat -F 32 /dev/${DRIVE}1
-fi
+dd if=/dev/zero of=/dev/$DRIVEB bs=1M count=1k
+echo "2\nn\n\n+128M\n+384M\n${BOOTPART}\nn\n\n\n468862094\n\np\nw\ny\n" | gdisk /dev/$DRIVEB
 
-mkfs.btrfs -L broot /dev/${DRIVE}2
 
-mount /dev/${DRIVE}2 /mnt
-mkdir /mnt/boot
-mount /dev/${DRIVE}1 /mnt/boot
+mkfs.btrfs -L broot -d raid1 /dev/${DRIVEA}2 /dev/${DRIVEB}2
+
+mount /dev/${DRIVEA}2 /mnt
+cd /mnt
+btrfs subvolume create @
+btrfs subvolume create @home
+cd
+
+umount /mnt
+
+mount -o noatime,nodiratime,subvol=@ /dev/sda2 /mnt
+mkdir /mnt/home
+mount -o noatime,nodiratime,subvol=@home /dev/sda2 /mnt/home
 
 pacstrap /mnt base base-devel zsh
 
-genfstab -U -p /mnt >> /mnt/etc/fstab
+# genfstab -U -p /mnt >> /mnt/etc/fstab
+genfstab -U -p /mnt | sed "s/subvolid=[0-9]*,subvol=\/@[a-z]*,//g" >> /mnt/etc/fstab
 
 arch-chroot /mnt
 
