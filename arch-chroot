@@ -2,10 +2,37 @@
 
 set -k
 
-HOSTNAME="doghouse"
+HOSTNAME="dashie"
 NEWUSERNAME=zidar
 USERPASS=pass
 ROOTPASS=pass
+
+
+function install_yaourt {
+    local aa=$(pwd)
+    pacman -Syy --noconfirm wget yajl
+
+    cd /tmp
+
+    wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
+    tar -xpvf package-query.tar.gz
+    chmod 777 package-query
+    cd package-query
+    sudo -u nobody makepkg --noconfirm
+    pacman --noconfirm -U package-query*.xz
+
+    
+    cd /tmp
+
+    wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
+    tar -xpvf yaourt.tar.gz
+    chmod 777 yaourt
+    cd yaourt
+    sudo -u nobody makepkg --noconfirm
+    pacman --noconfirm -U yaourt*-any.pkg.tar.xz
+
+    cd $aa
+}
 
 
 install_yaourt
@@ -50,11 +77,11 @@ sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 
 
 mkinitcpio -p linux
-bootctl install
-echo "title          Arch Linux" > /boot/loader/entries/arch.conf
-echo "linux          /vmlinuz-linux" >> /boot/loader/entries/arch.conf
-echo "initrd         /initramfs-linux.img" >> /boot/loader/entries/arch.conf
-echo "options        root=UUID=<change me> rw" >> /boot/loader/entries/arch.conf
+pacman -S --noconfirm grub-bios
+grub-install --recheck /dev/sda
+mkdir -p /boot/grub/locale
+cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+grub-mkconfig -o /boot/grub/grub.cfg
 
 
 
@@ -76,16 +103,8 @@ systemctl enable sshd.service
 
 pacman -S --noconfirm alsa-utils
 pacman -S --noconfirm xorg-server xorg-xinit xorg-server-utils
-
-# for ati:
-# pacman -S --noconfirm xf86-video-ati
-
-# for intel:
 pacman -S --noconfirm xf86-video-intel 
-
-# for nvidia:
-# pacman -S --noconfirm xf86-video-nouveau 
-# pacman -S --noconfirm nvidia 
+pacman -S --noconfirm xf86-input-synaptics
 
 
 
@@ -107,7 +126,3 @@ pacman -S --noconfirm  terminator blender gimp meld gitg smartmontools firefox r
 pacman -R --noconfirm epiphany empathy gnome-chess gnome-mines gnome-sudoku gnome-tetravex gnome-robots gnome-klotski gnome-nibbles totem gnome-documents gnome-photos tracker evolution gnome-music gnome-online-miners bijiben
 
 
-#
-# > tune2fs -o journal_data_writeback /dev/sdXY
-# data=writeback,noatime
-#
